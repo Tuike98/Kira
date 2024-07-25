@@ -1,0 +1,4 @@
+// Przykładowe mixiny
+@mixin transition($property, $duration) {
+  transition: $property $duration;
+}

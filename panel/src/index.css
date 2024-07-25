@@ -1,0 +1,240 @@
+/* Global styles */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #121212; /* Dark background */
+  color: #e0e0e0; /* Light text for readability */
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #bb86fc; /* Purple accent */
+}
+
+a {
+  color: #bb86fc; /* Purple accent */
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  margin: 10px 0;
+}
+
+/* Navigation styles */
+nav {
+  background-color: #1f1b24; /* Dark background */
+  color: #e0e0e0; /* Light text */
+  padding: 10px 20px;
+}
+
+nav ul {
+  display: flex;
+  justify-content: space-around;
+}
+
+nav ul li {
+  margin: 0 10px;
+}
+
+nav ul li a {
+  color: #e0e0e0; /* Light text */
+  font-weight: bold;
+}
+
+nav ul li a:hover {
+  color: #bb86fc; /* Purple on hover */
+}
+
+/* Container styles */
+.container {
+  display: flex;
+  flex-wrap: wrap; /* Ensure children wrap on smaller screens */
+}
+
+/* Left sidebar styles */
+.left-sidebar {
+  padding: 20px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  width: 250px;
+  background-color: #1f1b24;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  position: fixed; /* Ensure the sidebar stays in place */
+  top: 90px; /* Space from the header */
+  bottom: 80px; /* Space from the footer */
+  overflow-y: auto; /* Scroll if content overflows */
+  border-radius: 8px; /* Rounded corners */
+}
+
+.left-sidebar h2 {
+  color: #bb86fc; /* Purple accent */
+}
+
+.left-sidebar ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.left-sidebar ul li {
+  margin: 10px 0;
+}
+
+.left-sidebar ul li a {
+  color: #e0e0e0;
+  text-decoration: none;
+}
+
+.left-sidebar ul li a:hover {
+  color: #bb86fc;
+}
+
+.left-sidebar ul li ul {
+  margin-left: 20px;
+}
+
+.left-sidebar ul li ul li {
+  margin: 5px 0;
+}
+
+.left-sidebar ul li ul li a {
+  color: #e0e0e0;
+  text-decoration: none;
+}
+
+.left-sidebar ul li ul li a:hover {
+  color: #bb86fc;
+}
+
+/* Page styles */
+.page {
+  margin-left: 290px; /* Adjust for sidebar width and padding */
+  padding: 20px;
+  margin-top: 20px;
+  width: calc(100% - 290px); /* Adjust width to fill the rest of the container */
+  max-width: 1200px;
+  background: #1f1b24; /* Dark background */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  border-radius: 8px; /* Rounded corners */
+  bottom: 80px;
+  flex-grow: 1;
+}
+
+/* Main content styles */
+.main-content {
+  flex: 1;
+  padding: 20px;
+  background-color: #1f1b24; /* Dark background */
+  border-radius: 8px; /* Rounded corners */
+}
+
+/* Form styles */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+label {
+  font-weight: bold;
+  color: #e0e0e0; /* Light text */
+}
+
+input[type="text"], select {
+  padding: 8px;
+  border: 1px solid #bb86fc; /* Purple border */
+  border-radius: 4px;
+  background-color: #121212; /* Dark background */
+  color: #e0e0e0; /* Light text */
+}
+
+button {
+  padding: 10px;
+  background-color: #1f1b24; /* Dark background */
+  color: #e0e0e0; /* Light text */
+  border: 1px solid #bb86fc; /* Purple border */
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 10px 0; /* White space between buttons */
+}
+
+button:hover {
+  background-color: #bb86fc; /* Purple on hover */
+  color: #121212; /* Dark text on hover */
+}
+
+/* Server list styles */
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid #bb86fc; /* Purple border */
+  border-radius: 4px;
+  margin: 10px 0;
+  background-color: #1f1b24; /* Dark background */
+}
+
+li img {
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+/* Footer styles */
+footer {
+  text-align: center;
+  padding: 1rem;
+  background: #1f1b24; /* Dark background */
+  color: #e0e0e0; /* Light text */
+  position: fixed;
+  width: 100%;
+  bottom: 0;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+  }
+
+  .left-sidebar {
+    width: 100%;
+    position: relative;
+    top: 0;
+    bottom: 0;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .page {
+    margin-left: 0;
+    width: 100%;
+    margin-top: 20px;
+  }
+}
+
+@media (orientation: landscape) and (max-width: 768px) {
+  .left-sidebar {
+    width: 250px;
+    position: fixed;
+    top: 60px;
+    bottom: 20px;
+  }
+
+  .page {
+    margin-left: 290px;
+    width: calc(100% - 290px);
+  }
+}

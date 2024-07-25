@@ -1,0 +1,97 @@
+@import 'variables';
+@import 'mixins';
+
+.left-sidebar {
+  padding: 20px;
+  margin: 20px 0;
+  width: 250px;
+  background-color: $dark-background;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  position: fixed; /* Ensure the sidebar stays in place */
+  top: 90px; /* Space from the header */
+  bottom: 80px; /* Space from the footer */
+  overflow-y: auto; /* Scroll if content overflows */
+  border-radius: 8px; /* Rounded corners */
+  @include transition(all, 0.3s);
+
+  &.collapsed {
+    transform: translateX(-100%);
+    opacity: 0;
+    width: 250px; /* Maintain the width to avoid layout shift */
+  }
+
+  h2 {
+    color: $accent-color; /* Purple accent */
+    display: block; /* Hide title when collapsed */
+    @include transition(display, 0.3s);
+
+    &.collapsed {
+      display: none;
+    }
+  }
+
+  ul {
+    list-style-type: none;
+    padding: 0;
+
+    li {
+      margin: 10px 0;
+
+      a {
+        color: $text-color;
+        text-decoration: none;
+        display: block;
+        @include transition(color, 0.3s);
+
+        &:hover {
+          color: $accent-color;
+        }
+      }
+
+      ul {
+        margin-left: 20px;
+
+        li {
+          margin: 5px 0;
+
+          a {
+            color: $text-color;
+            text-decoration: none;
+
+            &:hover {
+              color: $accent-color;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+.sidebar-toggle {
+  position: absolute;
+  top: 50%;
+  right: -25px;
+  transform: translateY(-50%);
+  background-color: $dark-background;
+  border: 1px solid $accent-color;
+  border-radius: 50%;
+  cursor: pointer;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $text-color;
+  font-size: 20px;
+  @include transition(background-color, 0.3s);
+
+  &:hover {
+    background-color: $accent-color;
+    color: $dark-background;
+  }
+}
+
+.left-sidebar.collapsed + .sidebar-toggle {
+  right: -60px; /* Move the toggle button to the left when sidebar is collapsed */
+}

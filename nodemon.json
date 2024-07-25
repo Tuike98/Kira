@@ -1,0 +1,6 @@
+{
+  "watch": ["index.js", "app/**/*"],
+  "ext": "js,json",
+  "ignore": ["panel/*"],
+  "exec": "node index.js"
+}

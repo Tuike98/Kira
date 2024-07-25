@@ -1,0 +1,25 @@
+nav {
+  background-color: $dark-background; /* Dark background */
+  color: $text-color; /* Light text */
+  padding: 10px 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+
+  ul {
+    display: flex;
+    justify-content: space-around;
+  }
+
+  ul li {
+    margin: 0 10px;
+
+    a {
+      color: $text-color; /* Light text */
+      font-weight: bold;
+      @include transition(color, 0.3s);
+
+      &:hover {
+        color: $accent-color; /* Purple on hover */
+      }
+    }
+  }
+}

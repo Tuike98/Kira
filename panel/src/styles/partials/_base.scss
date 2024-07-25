@@ -1,0 +1,217 @@
+body {
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: $background-color; /* Dark background */
+  color: $text-color; /* Light text for readability */
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: $accent-color; /* Purple accent */
+  margin: 0;
+  padding: 0.5em 0;
+}
+
+p {
+  line-height: 1.6;
+  margin: 0 0 1em 0;
+}
+
+a {
+  color: $accent-color; /* Purple accent */
+  text-decoration: none;
+  @include transition(color, 0.3s);
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+ul, ol {
+  list-style-type: none;
+  padding: 0;
+  margin: 0 0 1em 0;
+
+  li {
+    margin: 10px 0;
+    padding-left: 20px;
+    position: relative;
+
+    &::before {
+      content: '•';
+      color: $accent-color;
+      position: absolute;
+      left: 0;
+    }
+  }
+}
+
+blockquote {
+  border-left: 5px solid $accent-color;
+  padding-left: 1em;
+  margin: 0 0 1em 0;
+  color: lighten($text-color, 10%);
+  font-style: italic;
+}
+
+code, pre {
+  font-family: 'Courier New', Courier, monospace;
+  background-color: lighten($background-color, 5%);
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+pre {
+  overflow-x: auto;
+  padding: 1em;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+
+  th, td {
+    padding: 0.75em;
+    border: 1px solid lighten($background-color, 10%);
+    text-align: left;
+  }
+
+  th {
+    background-color: $dark-background;
+  }
+
+  tbody tr:nth-child(even) {
+    background-color: lighten($background-color, 5%);
+  }
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+button {
+  padding: 10px 20px;
+  background-color: $accent-color;
+  color: $background-color;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  @include transition(background-color, 0.3s);
+  @include transition(color, 0.3s);
+
+  &:hover {
+    background-color: lighten($accent-color, 10%);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px lighten($accent-color, 20%);
+  }
+
+  &:disabled {
+    background-color: darken($accent-color, 20%);
+    cursor: not-allowed;
+  }
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 0.75em;
+  margin: 0.5em 0 1em 0;
+  border: 1px solid lighten($background-color, 10%);
+  border-radius: 4px;
+  background-color: lighten($background-color, 5%);
+  color: $text-color;
+  font-size: 1em;
+
+  &:focus {
+    border-color: $accent-color;
+    outline: none;
+    box-shadow: 0 0 0 2px lighten($accent-color, 20%);
+  }
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+label {
+  font-weight: bold;
+  color: $text-color; /* Light text */
+}
+
+hr {
+  border: 0;
+  height: 1px;
+  background: lighten($background-color, 10%);
+  margin: 2em 0;
+}
+
+.container {
+  padding: 1em;
+  margin: 0 auto;
+  max-width: 1200px;
+}
+
+.section {
+  margin-bottom: 20px;
+}
+
+.section h2 {
+  cursor: pointer;
+  user-select: none;
+  color: #bb86fc; /* Purple accent */
+  @include transition(color, 0.3s);
+
+  &:hover {
+    color: lighten(#bb86fc, 10%);
+  }
+}
+
+.hidden {
+  display: none;
+}
+
+.page textarea {
+  width: 100%;
+  height: 100px;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #bb86fc;
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+.preview {
+  margin-top: 20px;
+  padding: 10px;
+  border: 1px solid lighten($background-color, 10%);
+  border-radius: 4px;
+  background-color: lighten($background-color, 5%);
+}
+
+.preview h3 {
+  margin-top: 0;
+}
+
+.preview p, .preview div {
+  margin: 10px 0;
+}
+
+/* Responsive Styles */
+@media (max-width: $breakpoint-mobile) {
+  body {
+    padding: 0 1em;
+  }
+
+  .container {
+    padding: 0;
+    width: 100%;
+  }
+}

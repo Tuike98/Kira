@@ -1,0 +1,76 @@
+.left-sidebar {
+  padding: 20px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  width: 250px;
+  background-color: #1f1b24;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  position: fixed; /* Ensure the sidebar stays in place */
+  top: 20px; /* Space from the header */
+  bottom: 20px; /* Space from the footer */
+  overflow-y: auto; /* Scroll if content overflows */
+  transition: width 0.3s ease; /* Smooth transition */
+}
+
+.left-sidebar.collapsed {
+  width: 50px; /* Width when collapsed */
+}
+
+.left-sidebar.collapsed h2, .left-sidebar.collapsed ul li span {
+  display: none; /* Hide elements when collapsed */
+}
+
+.left-sidebar h2 {
+  color: #bb86fc; /* Purple accent */
+}
+
+.left-sidebar ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.left-sidebar ul li {
+  margin: 10px 0;
+}
+
+.left-sidebar ul li a, .left-sidebar ul li span {
+  color: #e0e0e0;
+  text-decoration: none;
+}
+
+.left-sidebar ul li a:hover, .left-sidebar ul li span:hover {
+  color: #bb86fc;
+}
+
+.left-sidebar ul li ul {
+  margin-left: 20px;
+}
+
+.left-sidebar ul li ul li {
+  margin: 5px 0;
+}
+
+.left-sidebar ul li ul li a {
+  color: #e0e0e0;
+  text-decoration: none;
+}
+
+.left-sidebar ul li ul li a:hover {
+  color: #bb86fc;
+}
+
+.toggle-btn {
+  background: none;
+  border: none;
+  color: #e0e0e0;
+  font-size: 20px;
+  cursor: pointer;
+  position: absolute;
+  top: 50%;
+  right: -15px;
+  transform: translateY(-50%);
+  background-color: #1f1b24;
+  border-radius: 50%;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  padding: 0 5px;
+}
