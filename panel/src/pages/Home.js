@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import Card from '../components/ui/Card';
+import Button from '../components/ui/Button';
+import Skeleton from '../components/ui/Skeleton';
+import './Home.css';
 
 function Home({ isAuthenticated, username }) {
   const [adminServerCount, setAdminServerCount] = useState(0);
@@ -17,7 +21,7 @@ function Home({ isAuthenticated, username }) {
 
   const fetchData = async () => {
     try {
-      const serversResponse = await fetch('/api/servers');
+      const serversResponse = await fetch('/api/servers', { credentials: 'include' });
       if (!serversResponse.ok) {
         const errorDetails = await serversResponse.text();
         throw new Error(`Failed to fetch servers. Status: ${serversResponse.status}, StatusText: ${serversResponse.statusText}, Details: ${errorDetails}`);
@@ -29,7 +33,7 @@ function Home({ isAuthenticated, username }) {
       setAdminServerCount(adminServers.length);
       setBotServerCount(botServers.length);
 
-      const subscriptionsResponse = await fetch('/api/licenses');
+      const subscriptionsResponse = await fetch('/api/licenses', { credentials: 'include' });
       if (!subscriptionsResponse.ok) {
         const errorDetails = await subscriptionsResponse.text();
         throw new Error(`Failed to fetch subscriptions. Status: ${subscriptionsResponse.status}, StatusText: ${subscriptionsResponse.statusText}, Details: ${errorDetails}`);
@@ -44,38 +48,117 @@ function Home({ isAuthenticated, username }) {
     }
   };
 
+  if (!isAuthenticated) {
+    return (
+      <div className="page home-page">
+        <div className="hero">
+          <div className="hero-content">
+            <h1 className="hero-title">Welcome to Kira Evolved!</h1>
+            <p className="hero-description">
+              Advanced Discord bot management platform with powerful features for server administration,
+              channel management, user moderation, and automation.
+            </p>
+            <a href="/auth/discord" className="hero-cta">
+              <Button variant="primary" size="lg">
+                Login with Discord
+              </Button>
+            </a>
+          </div>
+        </div>
+
+        <div className="features-grid">
+          <Card hoverable>
+            <div className="feature-icon">📢</div>
+            <h3>Channel Management</h3>
+            <p>Create, edit, and delete channels with ease. Full control over your server structure.</p>
+          </Card>
+
+          <Card hoverable>
+            <div className="feature-icon">👥</div>
+            <h3>User Management</h3>
+            <p>Moderation tools, role assignment, and comprehensive user management features.</p>
+          </Card>
+
+          <Card hoverable>
+            <div className="feature-icon">⚙️</div>
+            <h3>Automation</h3>
+            <p>Automatic role assignment, welcome messages, and custom automated workflows.</p>
+          </Card>
+
+          <Card hoverable>
+            <div className="feature-icon">🔒</div>
+            <h3>Security</h3>
+            <p>Advanced security features including anti-spam systems and content filtering.</p>
+          </Card>
+
+          <Card hoverable>
+            <div className="feature-icon">🔌</div>
+            <h3>Integrations</h3>
+            <p>Connect with other tools and services to enhance your server functionality.</p>
+          </Card>
+
+          <Card hoverable>
+            <div className="feature-icon">📊</div>
+            <h3>Analytics</h3>
+            <p>Track server activity, user engagement, and get insights into your community.</p>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="page">
-      {isAuthenticated ? (
-        <>
-          <h1>Witamy, {username}!</h1>
-          {loading ? (
-            <p>Ładowanie danych...</p>
-          ) : error ? (
-            <p>{error}</p>
-          ) : (
-            <ul>
-              <li>Serwery, na których masz uprawnienia administratora: {adminServerCount}</li>
-              <li>Serwery, na których jest Kira Evolved: {botServerCount}</li>
-              <li>Subskrypcje: {subscriptionCount}</li>
-            </ul>
-          )}
-        </>
-      ) : (
-        <>
-          <h1>Witamy w Kira Evolved!</h1>
-          <p>Kira Evolved to zaawansowany bot do zarządzania serwerami Discord, oferujący szeroki zakres funkcji, takich jak zarządzanie kanałami, użytkownikami, rolami i wiele więcej.</p>
-          <p>Główne funkcje Kira Evolved:</p>
-          <ul>
-            <li>Zarządzanie kanałami: Możliwość tworzenia, edytowania i usuwania kanałów.</li>
-            <li>Zarządzanie użytkownikami: Narzędzia do moderacji, przydzielania ról i zarządzania użytkownikami.</li>
-            <li>Automatyzacja: Automatyczne przypisywanie ról, powitania nowych użytkowników i inne.</li>
-            <li>Bezpieczeństwo: Zaawansowane funkcje zabezpieczające, takie jak system antyspamowy.</li>
-            <li>Integracje: Integracje z innymi narzędziami i usługami.</li>
-          </ul>
-          <a href="/auth/discord">Zaloguj się poprzez Discord</a>
-        </>
+    <div className="page home-page">
+      <div className="page-header">
+        <h1 className="page-title">Welcome back, {username}!</h1>
+        <p className="page-subtitle">Here's an overview of your servers and subscriptions</p>
+      </div>
+
+      {error && (
+        <div className="alert alert-error">
+          <span>{error}</span>
+          <button onClick={() => setError(null)}>✕</button>
+        </div>
       )}
+
+      {loading ? (
+        <div className="stats-grid">
+          <Skeleton height="120px" count={3} />
+        </div>
+      ) : (
+        <div className="stats-grid">
+          <div className="stat-card">
+            <div className="stat-value">{adminServerCount}</div>
+            <div className="stat-label">Admin Servers</div>
+          </div>
+
+          <div className="stat-card" style={{ background: 'linear-gradient(135deg, #23A559 0%, #1A8A45 100%)' }}>
+            <div className="stat-value">{botServerCount}</div>
+            <div className="stat-label">Servers with Bot</div>
+          </div>
+
+          <div className="stat-card" style={{ background: 'linear-gradient(135deg, #F0B232 0%, #D89A1C 100%)' }}>
+            <div className="stat-value">{subscriptionCount}</div>
+            <div className="stat-label">Active Subscriptions</div>
+          </div>
+        </div>
+      )}
+
+      <div className="quick-actions">
+        <Card title="Quick Actions" padding="lg">
+          <div className="actions-grid">
+            <Button variant="primary" onClick={() => window.location.href = '/servers'}>
+              View Servers
+            </Button>
+            <Button variant="secondary" onClick={() => window.location.href = '/licenses'}>
+              Manage Licenses
+            </Button>
+            <Button variant="ghost" onClick={() => window.location.href = '/templates'}>
+              Message Templates
+            </Button>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }
