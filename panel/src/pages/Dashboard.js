@@ -264,6 +264,7 @@ function Dashboard() {
                   )}
                 </div>
               )}
+            </div>
           </>
         ) : (
           <p>Server not found</p>
