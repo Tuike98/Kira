@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import LeftSidebar from './components/LeftSidebar';
 import Home from './pages/Home';
 import License from './pages/License';
 import Servers from './pages/Servers';
@@ -10,6 +9,9 @@ import Dashboard from './pages/Dashboard';
 import Logout from './pages/Logout';
 import ServerSettings from './pages/ServerSettings';
 import BotSettings from './pages/BotSettings';
+import Templates from './pages/Templates';
+import Analytics from './pages/Analytics';
+import WelcomeSettings from './pages/WelcomeSettings';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -37,6 +39,9 @@ function App() {
           <Route path="/logout" element={<Logout />} />
           <Route path="/dashboard/:id/serversettings" element={<ServerSettings />} />
           <Route path="/dashboard/:id/botsettings" element={<BotSettings />} />
+          <Route path="/dashboard/:id/templates" element={<Templates />} />
+          <Route path="/dashboard/:id/analytics" element={<Analytics />} />
+          <Route path="/dashboard/:id/welcome" element={<WelcomeSettings />} />
         </Routes>
         <Footer />
       </div>
