@@ -1,6 +1,16 @@
 import React, { useState } from 'react';
 
-function MessageForm({ channels, selectedChannel, setSelectedChannel, handleSendMessage, handleSaveMessageTemplate, handleSaveEmbedTemplate, handlePreviewToggle, preview }) {
+function MessageForm({
+  channels,
+  selectedChannel,
+  setSelectedChannel,
+  handleSendMessage,
+  handleSaveMessageTemplate,
+  handleSaveEmbedTemplate,
+  handlePreviewToggle,
+  preview,
+  sending = false
+}) {
   const [message, setMessage] = useState('');
   const [embedTitle, setEmbedTitle] = useState('');
   const [embedColor, setEmbedColor] = useState('#000000');
@@ -11,6 +21,8 @@ function MessageForm({ channels, selectedChannel, setSelectedChannel, handleSend
   const [menuItemLabel, setMenuItemLabel] = useState('');
   const [menuItemMessage, setMenuItemMessage] = useState('');
   const [attachments, setAttachments] = useState([]);
+  const [sectionVisible, setSectionVisible] = useState(true);
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleAddMenuItem = () => {
     setMenuItems([...menuItems, { label: menuItemLabel, message: menuItemMessage }]);
@@ -22,15 +34,48 @@ function MessageForm({ channels, selectedChannel, setSelectedChannel, handleSend
     setAttachments([...attachments, ...e.target.files]);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    handleSendMessage({ message, embedTitle, embedColor, embedDescription, embedFooter, attachments, menuType, menuItems });
+    setSuccessMessage('');
+
+    if (!message && !embedTitle && !embedDescription) {
+      alert('Please enter at least a message or embed content');
+      return;
+    }
+
+    const result = await handleSendMessage({
+      message,
+      embedTitle,
+      embedColor,
+      embedDescription,
+      embedFooter,
+      attachments,
+      menuType,
+      menuItems
+    });
+
+    if (result?.success) {
+      setSuccessMessage('Message sent successfully!');
+      // Clear form
+      setMessage('');
+      setEmbedTitle('');
+      setEmbedDescription('');
+      setEmbedFooter('');
+      setAttachments([]);
+      setTimeout(() => setSuccessMessage(''), 3000);
+    }
   };
 
   return (
     <div className="section">
-      <h2 onClick={() => document.getElementById('messagesSection').classList.toggle('hidden')}>Messages</h2>
-      <div id="messagesSection" className="hidden">
+      <h2
+        onClick={() => setSectionVisible(!sectionVisible)}
+        style={{ cursor: 'pointer', userSelect: 'none' }}
+      >
+        Messages {sectionVisible ? '▼' : '▶'}
+      </h2>
+      {sectionVisible && (
+        <div className="messages-section">
         <form onSubmit={handleSubmit}>
           <label>
             Select Channel:
@@ -82,24 +127,45 @@ function MessageForm({ channels, selectedChannel, setSelectedChannel, handleSend
               <input type="file" multiple onChange={handleFileUpload} />
             </label>
           </div>
-          <button type="button" onClick={handlePreviewToggle}>Preview Message</button>
-          <button type="submit">Send Message</button>
-          <button type="button" onClick={() => handleSaveMessageTemplate(message)}>Save as Template</button>
-          <button type="button" onClick={() => handleSaveEmbedTemplate({ title: embedTitle, color: embedColor, description: embedDescription, footer: embedFooter })}>Save Embed as Template</button>
+          {successMessage && <div className="success-message">{successMessage}</div>}
+          <div className="button-group">
+            <button type="button" onClick={handlePreviewToggle} disabled={sending}>
+              {preview ? 'Hide Preview' : 'Preview Message'}
+            </button>
+            <button type="submit" disabled={sending || !selectedChannel}>
+              {sending ? 'Sending...' : 'Send Message'}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSaveMessageTemplate(message)}
+              disabled={!message || sending}
+            >
+              Save as Template
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSaveEmbedTemplate({ title: embedTitle, color: embedColor, description: embedDescription, footer: embedFooter })}
+              disabled={(!embedTitle && !embedDescription) || sending}
+            >
+              Save Embed as Template
+            </button>
+          </div>
         </form>
         {preview && (
           <div className="preview">
             <h3>Message Preview:</h3>
-            <p>{message}</p>
+            <p>{message || <em>No message content</em>}</p>
             <h3>Embed Preview:</h3>
-            <div>
-              <h4 style={{ color: embedColor }}>{embedTitle}</h4>
-              <p>{embedDescription}</p>
-              <p>{embedFooter}</p>
+            <div className="embed-preview" style={{ borderLeft: `4px solid ${embedColor}` }}>
+              {embedTitle && <h4 style={{ color: embedColor }}>{embedTitle}</h4>}
+              {embedDescription && <p>{embedDescription}</p>}
+              {embedFooter && <small>{embedFooter}</small>}
+              {!embedTitle && !embedDescription && !embedFooter && <em>No embed content</em>}
             </div>
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }

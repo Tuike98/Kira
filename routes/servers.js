@@ -3,40 +3,40 @@ const router = express.Router();
 const { ensureAuthenticated } = require('../middlewares/auth');
 const ServerSettings = require('../app/models/serverSettings');
 const License = require('../app/models/license');
-const { logError } = require('../logger');
+const { logger, logError } = require('../logger');
 
 module.exports = (bot) => {
   router.get('/:id', ensureAuthenticated, async (req, res) => {
     try {
       const { id } = req.params;
-      console.log(`Rozpoczęto pobieranie szczegółów serwera o ID: ${id}`);
+      logger.info(`Fetching server details for ID: ${id}`);
 
       const idPattern = /^[0-9]+$/;
       if (!idPattern.test(id)) {
-        const message = `Nieprawidłowy format ID serwera: ${id}`;
-        console.error(message);
+        const message = `Invalid server ID format: ${id}`;
+        logger.error(message);
         return res.status(400).json({ error: message });
       }
 
       const guild = await bot.guilds.fetch(id);
       if (!guild) {
-        const message = `Serwer nie został znaleziony dla ID: ${id}`;
-        console.error(message);
+        const message = `Server not found for ID: ${id}`;
+        logger.error(message);
         return res.status(404).json({ error: message });
       }
-      console.log(`Serwer pobrany: ${guild.name}`);
+      logger.info(`Server fetched: ${guild.name}`);
 
       const serverSettings = await ServerSettings.findOne({ where: { serverId: id } });
       if (!serverSettings) {
-        const message = `Ustawienia serwera nie zostały znalezione dla ID: ${id}`;
-        console.error(message);
+        const message = `Server settings not found for ID: ${id}`;
+        logger.warn(message);
         return res.status(404).json({ error: message });
       }
-      console.log(`Ustawienia serwera pobrane dla: ${guild.name}`);
+      logger.info(`Server settings fetched for: ${guild.name}`);
 
       const license = await License.findOne({ where: { serverId: id } });
       if (!license) {
-        console.log(`Brak aktywnej licencji dla serwera o ID: ${id}`);
+        logger.info(`No active license for server ID: ${id}`);
       }
 
       const serverDetails = {

@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import MessageForm from '../components/MessageForm';
 import MenuForm from '../components/MenuForm';
 
 function Dashboard() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [server, setServer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -14,125 +15,151 @@ function Dashboard() {
   const [embedTemplates, setEmbedTemplates] = useState([]);
   const [preview, setPreview] = useState(false);
   const [history, setHistory] = useState([]);
+  const [historyVisible, setHistoryVisible] = useState(false);
+  const [sendingMessage, setSendingMessage] = useState(false);
 
   useEffect(() => {
     fetchServerDetails();
     fetchChannels();
-  }, [id]);
+  }, [fetchServerDetails, fetchChannels]);
 
-  const fetchServerDetails = async () => {
+  const fetchServerDetails = useCallback(async () => {
     try {
-      console.log(`Rozpoczęto pobieranie szczegółów serwera o ID: ${id}`);
+      setLoading(true);
+      setError(null);
 
-      // Sprawdzenie formatu ID serwera
+      // Validate server ID format
       const idPattern = /^[0-9]+$/;
       if (!idPattern.test(id)) {
-        throw new Error(`Nieprawidłowy format ID serwera: ${id}`);
+        throw new Error(`Invalid server ID format: ${id}`);
       }
 
-      const response = await fetch(`/api/server/${id}`);
-      
+      const response = await fetch(`/api/server/${id}`, {
+        credentials: 'include'
+      });
+
+      if (response.status === 401) {
+        navigate('/');
+        return;
+      }
+
       if (!response.ok) {
-        const errorDetails = await response.text();
-        throw new Error(`Nie udało się pobrać szczegółów serwera. Status: ${response.status}, StatusText: ${response.statusText}, Szczegóły: ${errorDetails}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Failed to fetch server details (Status: ${response.status})`);
       }
 
       const data = await response.json();
-      console.log('Pobrane szczegóły serwera:', data);
 
-      // Walidacja struktury danych
+      // Validate data structure
       if (typeof data !== 'object' || data === null) {
-        throw new Error('Oczekiwano, że dane będą obiektem.');
+        throw new Error('Invalid server data received');
       }
 
-      // Walidacja kluczowych właściwości obiektu serwera
       const requiredProps = ['id', 'name', 'icon', 'memberCount', 'ownerID'];
-      requiredProps.forEach(prop => {
-        if (!data.hasOwnProperty(prop)) {
-          throw new Error(`Brak wymaganej właściwości w danych serwera: ${prop}`);
-        }
-      });
+      const missingProps = requiredProps.filter(prop => !data.hasOwnProperty(prop));
+      if (missingProps.length > 0) {
+        throw new Error(`Missing required properties: ${missingProps.join(', ')}`);
+      }
 
       setServer(data);
     } catch (error) {
-      console.error('Błąd podczas pobierania szczegółów serwera:', error.message);
-      console.error('Szczegóły błędu:', error.stack);
-      setError('Błąd podczas pobierania szczegółów serwera: ' + error.message);
+      setError('Error fetching server details: ' + error.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, navigate]);
 
-  const fetchChannels = async () => {
+  const fetchChannels = useCallback(async () => {
     try {
-      console.log(`Rozpoczęto pobieranie kanałów dla serwera o ID: ${id}`);
+      const response = await fetch(`/api/server/${id}/channels`, {
+        credentials: 'include'
+      });
 
-      const response = await fetch(`/api/server/${id}/channels`);
-      
       if (!response.ok) {
-        const errorDetails = await response.text();
-        throw new Error(`Failed to fetch channels. Status: ${response.status}, StatusText: ${response.statusText}, Details: ${errorDetails}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Failed to fetch channels (Status: ${response.status})`);
       }
 
       const data = await response.json();
-      console.log('Pobrane kanały:', data);
 
-      // Walidacja struktury danych
+      // Validate data structure
       if (!Array.isArray(data)) {
-        throw new Error('Oczekiwano, że dane będą tablicą.');
+        throw new Error('Invalid channels data received');
       }
 
-      // Walidacja pojedynczego obiektu kanału
-      data.forEach(channel => {
-        if (!channel.id || !channel.name || typeof channel.id !== 'string' || typeof channel.name !== 'string') {
-          throw new Error('Nieprawidłowa struktura danych kanału. Oczekiwano obiektów z właściwościami id i name typu string.');
-        }
-      });
+      // Validate channel objects
+      const invalidChannel = data.find(channel =>
+        !channel.id || !channel.name ||
+        typeof channel.id !== 'string' ||
+        typeof channel.name !== 'string'
+      );
+
+      if (invalidChannel) {
+        throw new Error('Invalid channel structure in response');
+      }
 
       setChannels(data);
-      if (data.length > 0) {
+      if (data.length > 0 && !selectedChannel) {
         setSelectedChannel(data[0].id);
-        console.log(`Ustawiono wybrany kanał na: ${data[0].id} (${data[0].name})`);
-      } else {
-        console.log('Brak dostępnych kanałów.');
       }
     } catch (error) {
-      console.error('Błąd podczas pobierania kanałów:', error.message);
-      setError('Błąd podczas pobierania kanałów: ' + error.message);
+      setError('Error fetching channels: ' + error.message);
     }
-  };
+  }, [id, selectedChannel]);
 
-  const handleSendMessage = async ({ message, embedTitle, embedColor, embedDescription, embedFooter, attachments }) => {
+  const handleSendMessage = useCallback(async ({ message, embedTitle, embedColor, embedDescription, embedFooter, attachments }) => {
     try {
-      const embedMessage = {
-        title: embedTitle,
-        color: embedColor,
-        description: embedDescription,
-        footer: embedFooter,
-      };
+      setSendingMessage(true);
+      setError(null);
 
-      console.log('Sending message:', { message, embedMessage, attachments }); // Dodane logowanie
+      if (!selectedChannel) {
+        throw new Error('Please select a channel first');
+      }
+
+      const embedMessage = (embedTitle || embedDescription)
+        ? {
+            title: embedTitle || undefined,
+            color: embedColor || '#000000',
+            description: embedDescription || undefined,
+            footer: embedFooter || undefined,
+          }
+        : null;
 
       const response = await fetch(`/api/server/${id}/message`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           channelId: selectedChannel,
-          message,
+          message: message || undefined,
           embedMessage,
           attachments
         }),
       });
-      if (!response.ok) throw new Error('Failed to send message');
-      alert('Message sent successfully');
-      setHistory([...history, { message, embedMessage }]);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to send message');
+      }
+
+      // Success feedback
+      setHistory(prev => [...prev, {
+        message,
+        embedMessage,
+        timestamp: new Date().toISOString(),
+        channelId: selectedChannel
+      }]);
+
+      return { success: true };
     } catch (error) {
-      console.error('Error sending message:', error);
       setError('Error sending message: ' + error.message);
+      return { success: false, error: error.message };
+    } finally {
+      setSendingMessage(false);
     }
-  };
+  }, [id, selectedChannel]);
 
   const handleSaveMessageTemplate = (message) => {
     setMessageTemplates([...messageTemplates, message]);
@@ -147,30 +174,55 @@ function Dashboard() {
   };
 
   if (loading) {
-    return <div className="page"><p>Loading...</p></div>;
+    return (
+      <div className="page">
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <p>Loading server details...</p>
+        </div>
+      </div>
+    );
   }
 
-  if (error) {
-    return <div className="page"><p>{error}</p></div>;
+  if (error && !server) {
+    return (
+      <div className="page">
+        <div className="error-container">
+          <h2>Error</h2>
+          <p>{error}</p>
+          <button onClick={() => window.location.reload()}>Retry</button>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="container">
       <div className="page">
+        {error && (
+          <div className="alert alert-error">
+            <p>{error}</p>
+            <button onClick={() => setError(null)}>Dismiss</button>
+          </div>
+        )}
         {server ? (
           <>
-            <h1>{server.name}</h1>
-            <img src={server.icon} alt={`${server.name} icon`} width="100" height="100" />
-            <p>Members: {server.memberCount}</p>
-            <p>Owner ID: {server.ownerID}</p>
-            {server.license ? (
-              <>
-                <p>License Key: {server.license.key}</p>
-                <p>Expires At: {new Date(server.license.expiresAt).toLocaleString()}</p>
-              </>
-            ) : (
-              <p>No active license</p>
-            )}
+            <div className="server-header">
+              <img src={server.icon} alt={`${server.name} icon`} width="100" height="100" />
+              <div className="server-info">
+                <h1>{server.name}</h1>
+                <p>Members: {server.memberCount}</p>
+                <p>Owner ID: {server.ownerID}</p>
+                {server.license ? (
+                  <div className="license-info">
+                    <p><strong>License Key:</strong> {server.license.key}</p>
+                    <p><strong>Expires:</strong> {new Date(server.license.expiresAt).toLocaleString()}</p>
+                  </div>
+                ) : (
+                  <p className="no-license">No active license</p>
+                )}
+              </div>
+            </div>
             <MessageForm
               channels={channels}
               selectedChannel={selectedChannel}
@@ -180,6 +232,7 @@ function Dashboard() {
               handleSaveEmbedTemplate={handleSaveEmbedTemplate}
               handlePreviewToggle={handlePreviewToggle}
               preview={preview}
+              sending={sendingMessage}
             />
             <MenuForm
               channels={channels}
@@ -187,19 +240,30 @@ function Dashboard() {
               setSelectedChannel={setSelectedChannel}
             />
             <div className="section">
-              <h2 onClick={() => document.getElementById('historySection').classList.toggle('hidden')}>Message History</h2>
-              <div id="historySection" className="hidden">
-                <ul>
-                  {history.map((item, index) => (
-                    <li key={index}>
-                      <p><strong>Message:</strong> {item.message}</p>
-                      <p><strong>Embed:</strong> {item.embedMessage && item.embedMessage.title ? item.embedMessage.title : 'No embed'}</p>
-                      <p><strong>Channel:</strong> {channels.find(channel => channel.id === selectedChannel)?.name || 'Unknown'}</p>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
+              <h2
+                onClick={() => setHistoryVisible(!historyVisible)}
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+              >
+                Message History {historyVisible ? '▼' : '▶'}
+              </h2>
+              {historyVisible && (
+                <div className="history-section">
+                  {history.length === 0 ? (
+                    <p>No messages sent yet</p>
+                  ) : (
+                    <ul>
+                      {history.map((item, index) => (
+                        <li key={index}>
+                          <p><strong>Message:</strong> {item.message || 'None'}</p>
+                          <p><strong>Embed:</strong> {item.embedMessage?.title || 'No embed'}</p>
+                          <p><strong>Channel:</strong> {channels.find(channel => channel.id === item.channelId)?.name || 'Unknown'}</p>
+                          <p><strong>Time:</strong> {new Date(item.timestamp).toLocaleString()}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
           </>
         ) : (
           <p>Server not found</p>

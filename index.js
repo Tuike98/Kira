@@ -1,7 +1,8 @@
 require('dotenv').config();
 const express = require('express');
-const bodyParser = require('body-parser');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const passport = require('passport');
 const { Strategy: DiscordStrategy } = require('passport-discord');
 const session = require('express-session');
@@ -18,9 +19,43 @@ const { ensureAuthenticated } = require('./middlewares/auth');
 const { logger, logError } = require('./logger');
 const app = express();
 
-app.use(bodyParser.json());
-app.use(cors());
-app.use(session({ secret: process.env.SESSION_SECRET, resave: false, saveUninitialized: false }));
+// Security middleware
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable for React dev
+  crossOriginEmbedderPolicy: false
+}));
+
+// CORS configuration - update with your frontend URL
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+app.use(cors(corsOptions));
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.'
+});
+app.use('/api/', limiter);
+
+// Body parsing
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Session configuration
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -43,16 +78,28 @@ passport.use(new DiscordStrategy({
   scope: ['identify', 'guilds']
 }, async (accessToken, refreshToken, profile, done) => {
   try {
+    // Handle username (discriminator is deprecated in Discord API)
+    const username = profile.discriminator && profile.discriminator !== '0'
+      ? `${profile.username}#${profile.discriminator}`
+      : profile.username;
+
     const [user, created] = await User.findOrCreate({
       where: { id: profile.id },
       defaults: {
-        username: `${profile.username}#${profile.discriminator}`,
+        username: username,
         isAdmin: false,
       },
     });
 
+    // Update username if changed
+    if (user.username !== username) {
+      await user.update({ username });
+    }
+
     profile.accessToken = accessToken;
     profile.isAdmin = user.isAdmin;
+
+    logger.info(`User ${created ? 'created' : 'logged in'}: ${username}`);
     return done(null, profile);
   } catch (error) {
     logError('Error in Discord Strategy', error);
@@ -113,11 +160,20 @@ app.use('/api/server/:id/botsettings', botSettingsRoutes(bot));
 
 app.use(express.static(path.join(__dirname, 'panel/build')));
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  logError('Unhandled error', err);
+  res.status(500).json({
+    error: 'Internal server error',
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
+  });
+});
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'panel/build/index.html'));
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  logger.info(`Server is running on port ${PORT}`);
 });
