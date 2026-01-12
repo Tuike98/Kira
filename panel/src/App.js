@@ -10,6 +10,7 @@ import Dashboard from './pages/Dashboard';
 import Logout from './pages/Logout';
 import ServerSettings from './pages/ServerSettings';
 import BotSettings from './pages/BotSettings';
+import Templates from './pages/Templates';
 import './styles/theme.css';
 import './App.css';
 
@@ -47,6 +48,7 @@ function App() {
               <Route path="/" element={<Home isAuthenticated={isAuthenticated} username={username} />} />
               <Route path="/licenses" element={<License isAuthenticated={isAuthenticated} />} />
               <Route path="/servers" element={<Servers isAuthenticated={isAuthenticated} />} />
+              <Route path="/templates" element={<Templates />} />
               <Route path="/dashboard/:id" element={<Dashboard />} />
               <Route path="/logout" element={<Logout />} />
               <Route path="/dashboard/:id/serversettings" element={<ServerSettings />} />
