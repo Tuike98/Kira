@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import logger from './logger';
 
 function Home({ isAuthenticated, username }) {
   const [adminServerCount, setAdminServerCount] = useState(0);
@@ -38,7 +37,7 @@ function Home({ isAuthenticated, username }) {
       const subscriptions = await subscriptionsResponse.json();
       setSubscriptionCount(subscriptions.length);
     } catch (error) {
-      logger.error('Error fetching data: %s', error.message, { stack: error.stack });
+      console.error('Error fetching data:', error.message, error.stack);
       setError('Error fetching data. Please check the server logs for more details.');
     } finally {
       setLoading(false);
