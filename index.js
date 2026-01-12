@@ -63,11 +63,26 @@ sequelize.sync().then(() => {
   logger.info('Database synchronized');
 }).catch(error => logError('Database synchronization error', error));
 
-const bot = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers] });
+const bot = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildPresences] });
 
 bot.once('ready', () => {
   logger.info(`Logged in as ${bot.user.tag}`);
 });
+
+// Load event handlers
+const fs = require('fs');
+const path = require('path');
+const eventsPath = path.join(__dirname, 'app', 'events');
+if (fs.existsSync(eventsPath)) {
+  const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
+  for (const file of eventFiles) {
+    const event = require(path.join(eventsPath, file));
+    if (event.name && event.execute) {
+      bot.on(event.name, (...args) => event.execute(...args));
+      logger.info(`Loaded event: ${event.name}`);
+    }
+  }
+}
 
 bot.login(process.env.DISCORD_BOT_TOKEN).catch(error => logError('Bot login error', error));
 
@@ -148,6 +163,9 @@ const serverSettingsRoutes = require('./routes/serverSettings');
 const botSettingsRoutes = require('./routes/botSettings');
 const licensesRoutes = require('./routes/licenses');
 const serversRoutes = require('./routes/servers');
+const templatesRoutes = require('./routes/templates');
+const welcomeSettingsRoutes = require('./routes/welcomeSettings');
+const analyticsRoutes = require('./routes/analytics');
 
 app.use('/api/server/:id/message', messageRoutes(bot));
 app.use('/api/server/:id/roles', roleRoutes(bot));
@@ -157,6 +175,9 @@ app.use('/api/servers', serversRoutes(bot));
 app.use('/api/licenses', licensesRoutes);
 app.use('/api/server/:id/serversettings', serverSettingsRoutes(bot));
 app.use('/api/server/:id/botsettings', botSettingsRoutes(bot));
+app.use('/api/templates', templatesRoutes(bot));
+app.use('/api/welcome', welcomeSettingsRoutes(bot));
+app.use('/api/analytics', analyticsRoutes(bot));
 
 app.use(express.static(path.join(__dirname, 'panel/build')));
 
